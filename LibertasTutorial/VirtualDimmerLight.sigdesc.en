@@ -1,0 +1,1 @@
+{"DisplayName":"Libertas Virtual Dimmer Light Example", "Description":"", "List":[{"Locale":"en", "Name":"virtualDimmer", "DisplayName":"An example virtual dimmer", "Description":"", "List":[{"Type":0, "Name":"Virtual Dimmer Device", "Description":"", "Extras":[]}], "Strings":{}}], "Types":[]}
