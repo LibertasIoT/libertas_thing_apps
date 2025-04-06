@@ -6,12 +6,18 @@ type DimmerState = [
     transitionTime: number,     //  In 100 milliseconds. Cleared to 0 when transition finishes
     timer?: LibertasTimer]
 type Dimmer = [state: DimmerState, onOffAttrs: LibertasAttributes, levelAttrs: LibertasAttributes]
+type Config = [onOffAttrs: LibertasAttributes, levelAttrs: LibertasAttributes]
+
+const CONFIG_DB_NAME = "config"
 
 const SUPPORTED_ONOFF_ATTRIBUTES = [
         Matter.Attributes.OnOff.OnOff,
         Matter.Attributes.OnOff.GlobalSceneControl,
         Matter.Attributes.OnOff.OnTime,
         Matter.Attributes.OnOff.OffWaitTime,
+        Matter.Attributes.OnOff.StartUpOnOff]
+
+const WRITABLE_ONOFF_ATTRIBUTES = [
         Matter.Attributes.OnOff.StartUpOnOff]
 
 const SUPPORTED_LEVEL_CONTROL_ATTRIBUTES = [
@@ -24,8 +30,23 @@ const SUPPORTED_LEVEL_CONTROL_ATTRIBUTES = [
         Matter.Attributes.LevelControl.Options,
         Matter.Attributes.LevelControl.StartUpCurrentLevel ]
 
+const WRITABLE_LEVEL_CONTROL_ATTRIBUTES = [
+        Matter.Attributes.LevelControl.OnLevel,
+        Matter.Attributes.LevelControl.OnTransitionTime,
+        Matter.Attributes.LevelControl.OffTransitionTime,
+        Matter.Attributes.LevelControl.OnOffTransitionTime,
+        Matter.Attributes.LevelControl.Options,
+        Matter.Attributes.LevelControl.StartUpCurrentLevel ]
+
 const SUPPORTED_ONOFF_ATTRIBUTE_SET = new Set<number>(SUPPORTED_ONOFF_ATTRIBUTES)
 const SUPPORTED_LEVEL_CONTROL_ATTRIBUTE_SET = new Set<number>(SUPPORTED_LEVEL_CONTROL_ATTRIBUTES)
+const WRITABLE_ONOFF_ATTRIBUTE_SET = new Set<number>(WRITABLE_ONOFF_ATTRIBUTES)
+const WRITABLE_LEVEL_CONTROL_ATTRIBUTE_SET = new Set<number>(WRITABLE_LEVEL_CONTROL_ATTRIBUTES)
+
+function writeConfig(dimmer : Dimmer) {
+    const config: Config = [dimmer[1], dimmer[2]]
+    Libertas_DataWriteStandalone(CONFIG_DB_NAME, config)
+}
 
 function generateClusterAttributeRsp(
         clusterRsp : LibertasClusterReport,
@@ -132,7 +153,7 @@ function dimmerCallback(device: LibertasVirtualDevice, ref: number, action: Libe
         for (const clusterReq of req) {
             const clusterId = clusterReq[0]
             const clusterRsp : LibertasClusterReport = 
-                [clusterId, {}, {}];
+                [clusterId, <LibertasAttributes>{}, <LibertasIdStatus>{}];
             if (clusterId === Matter.Clusters.OnOff) {
                 generateClusterAttributeRsp(clusterRsp, clusterReq[1], onOffAttrs, SUPPORTED_ONOFF_ATTRIBUTE_SET)
             } else if (clusterId === Matter.Clusters.LevelControl) {
@@ -146,6 +167,56 @@ function dimmerCallback(device: LibertasVirtualDevice, ref: number, action: Libe
         }
         Libertas_VirtualDeviceAttributesRsp(device, ref, reports)
     } else if (action === LibertasDeviceAction.WriteRequest) {
+        const req = data as LibertasClusterAttributes[]
+        const attributeChanges: LibertasClusterReadReq[] = []
+        const writeRsp: LibertasClusterWriteRsp[] = []
+        for (const clusterReq of req) {
+            const modified: number[] = [];
+            const attributeStatus: LibertasIdStatus = {};
+            const [cluster, attributes, nullAttributes] = clusterReq;
+            let currentAttributes: LibertasAttributes | undefined;
+            let attrIdSet: Set<number> | undefined
+            if (cluster === Matter.Clusters.OnOff) {
+                currentAttributes = onOffAttrs;
+                attrIdSet = WRITABLE_ONOFF_ATTRIBUTE_SET
+            } else if (cluster === Matter.Clusters.LevelControl) {
+                currentAttributes = levelAttrs;
+                attrIdSet = WRITABLE_LEVEL_CONTROL_ATTRIBUTE_SET
+            }
+            if (nullAttributes !== undefined) {
+                for (const attrId of nullAttributes) {
+                    if (attrIdSet!.has(attrId)) {
+                        if (currentAttributes![attrId] !== undefined) {
+                            currentAttributes![attrId] = undefined;
+                            modified.push(attrId);
+                        }
+                        attributeStatus[attrId] = Matter.Status.Success;
+                    } else {
+                        attributeStatus[attrId] = Matter.Status.UnsupportedAccess;
+                    }
+                }
+            }
+            for (const [attrId, value] of Libertas_MakeIterable(attributes)) {
+                if (attrIdSet!.has(attrId)) {
+                    if (currentAttributes![attrId] !== value) {
+                        currentAttributes![attrId] = value;
+                        modified.push(attrId);
+                    }
+                    attributeStatus[attrId] = Matter.Status.Success;
+                } else {
+                    attributeStatus[attrId] = Matter.Status.UnsupportedAccess;
+                }
+            }
+            if (modified.length > 0) {
+                attributeChanges.push([cluster, modified])
+                writeConfig(dimmer)
+            }
+            writeRsp.push([cluster, attributeStatus])
+        }
+        Libertas_VirtualDeviceWriteRsp(device, ref, writeRsp)
+        if (attributeChanges.length > 0) {
+            Libertas_VirtualDeviceAttributesChanged(device, attributeChanges)
+        }
     } else if (action === LibertasDeviceAction.InvokeCommandRequest) {
         const req = data as LibertasCommand
         const [clusterId, commandId, commandData] = req
@@ -283,36 +354,43 @@ export function virtualDimmer(device: LibertasVirtualDevice) {
     // Initialize attributes
     // The attributes must match the developer designed "virtual device type". See URL below:
     // https://smartonlabs.com/doc/developers_doc/virtual_device_api/define_virtual_device/
-
+    const config = Libertas_DataReadStandalone(CONFIG_DB_NAME) as Config | undefined;
+    if (config !== undefined) {
+        dimmer[1] = config[0];
+        dimmer[2] = config[1];
+    }
     // On/Off attributes
     const onOffAttrs = dimmer[1];
+    const levelAttrs = dimmer[2];
     // Level control attributes
     onOffAttrs[Matter.Attributes.OnOff.OnOff] = false           // Initially off
     onOffAttrs[Matter.Attributes.OnOff.GlobalSceneControl] = false
     onOffAttrs[Matter.Attributes.OnOff.OnTime] = 0
     onOffAttrs[Matter.Attributes.OnOff.OffWaitTime] = 0
-    onOffAttrs[Matter.Attributes.OnOff.StartUpOnOff] = Matter.Constants.OnOff.StartUpOnOffEnum.Off
-    const levelAttrs = dimmer[2];
     levelAttrs[Matter.Attributes.LevelControl.CurrentLevel] = 1 // Minimum level
     levelAttrs[Matter.Attributes.LevelControl.RemainingTime] = 0
-    levelAttrs[Matter.Attributes.LevelControl.OnLevel] = 254
-    levelAttrs[Matter.Attributes.LevelControl.OnTransitionTime] = 20
-    levelAttrs[Matter.Attributes.LevelControl.OffTransitionTime] = 20
-    levelAttrs[Matter.Attributes.LevelControl.OnOffTransitionTime] = 20
-    levelAttrs[Matter.Attributes.LevelControl.Options] = Matter.Constants.LevelControl.OptionsBitmap.ExecuteIfOff
-    levelAttrs[Matter.Attributes.LevelControl.StartUpCurrentLevel] = 1 // Minimum level
-    // Report attribute changes. Must match the attribute list in design.
+
+    if (config === undefined) {
+        onOffAttrs[Matter.Attributes.OnOff.StartUpOnOff] = Matter.Constants.OnOff.StartUpOnOffEnum.Off
+        levelAttrs[Matter.Attributes.LevelControl.OnLevel] = 254
+        levelAttrs[Matter.Attributes.LevelControl.OnTransitionTime] = 20
+        levelAttrs[Matter.Attributes.LevelControl.OffTransitionTime] = 20
+        levelAttrs[Matter.Attributes.LevelControl.OnOffTransitionTime] = 20
+        levelAttrs[Matter.Attributes.LevelControl.Options] = Matter.Constants.LevelControl.OptionsBitmap.ExecuteIfOff
+        levelAttrs[Matter.Attributes.LevelControl.StartUpCurrentLevel] = 1 // Minimum level
+    }
+    // On startup, report attribute changes. Must match the attribute list in design.
     Libertas_VirtualDeviceAttributesChanged(device, 
+    [
         [
-            [
-                Matter.Clusters.OnOff, 
-                SUPPORTED_ONOFF_ATTRIBUTES
-            ],
-            [
-                Matter.Clusters.LevelControl,
-                SUPPORTED_LEVEL_CONTROL_ATTRIBUTES
-            ],
-        ]);
+            Matter.Clusters.OnOff, 
+            SUPPORTED_ONOFF_ATTRIBUTES
+        ],
+        [
+            Matter.Clusters.LevelControl,
+            SUPPORTED_LEVEL_CONTROL_ATTRIBUTES
+        ],
+    ]);
 
     // Start event loop
     Libertas_WaitReactive();

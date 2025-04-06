@@ -1,5 +1,6 @@
 --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 local ____exports = {}
+local CONFIG_DB_NAME = "config"
 local SUPPORTED_ONOFF_ATTRIBUTES = {
     0,
     16384,
@@ -7,6 +8,7 @@ local SUPPORTED_ONOFF_ATTRIBUTES = {
     16386,
     16387
 }
+local WRITABLE_ONOFF_ATTRIBUTES = {16387}
 local SUPPORTED_LEVEL_CONTROL_ATTRIBUTES = {
     0,
     1,
@@ -17,8 +19,22 @@ local SUPPORTED_LEVEL_CONTROL_ATTRIBUTES = {
     15,
     16384
 }
+local WRITABLE_LEVEL_CONTROL_ATTRIBUTES = {
+    17,
+    18,
+    19,
+    16,
+    15,
+    16384
+}
 local SUPPORTED_ONOFF_ATTRIBUTE_SET = __TS__New(Set, SUPPORTED_ONOFF_ATTRIBUTES)
 local SUPPORTED_LEVEL_CONTROL_ATTRIBUTE_SET = __TS__New(Set, SUPPORTED_LEVEL_CONTROL_ATTRIBUTES)
+local WRITABLE_ONOFF_ATTRIBUTE_SET = __TS__New(Set, WRITABLE_ONOFF_ATTRIBUTES)
+local WRITABLE_LEVEL_CONTROL_ATTRIBUTE_SET = __TS__New(Set, WRITABLE_LEVEL_CONTROL_ATTRIBUTES)
+local function writeConfig(dimmer)
+    local config = {dimmer[2], dimmer[3]}
+    Libertas_DataWriteStandalone(CONFIG_DB_NAME, config)
+end
 local function generateClusterAttributeRsp(clusterRsp, attrIdList, attrs, attrSet)
     for ____, attrId in ipairs(attrIdList) do
         local v = attrs[attrId]
@@ -125,6 +141,56 @@ local function dimmerCallback(device, ref, action, data, tag)
         end
         Libertas_VirtualDeviceAttributesRsp(device, ref, reports)
     elseif action == 6 then
+        local req = data
+        local attributeChanges = {}
+        local writeRsp = {}
+        for ____, clusterReq in ipairs(req) do
+            local modified = {}
+            local attributeStatus = {}
+            local cluster, attributes, nullAttributes = unpack(clusterReq)
+            local currentAttributes
+            local attrIdSet
+            if cluster == 6 then
+                currentAttributes = onOffAttrs
+                attrIdSet = WRITABLE_ONOFF_ATTRIBUTE_SET
+            elseif cluster == 8 then
+                currentAttributes = levelAttrs
+                attrIdSet = WRITABLE_LEVEL_CONTROL_ATTRIBUTE_SET
+            end
+            if nullAttributes ~= nil then
+                for ____, attrId in ipairs(nullAttributes) do
+                    if attrIdSet:has(attrId) then
+                        if currentAttributes[attrId] ~= nil then
+                            currentAttributes[attrId] = nil
+                            modified[#modified + 1] = attrId
+                        end
+                        attributeStatus[attrId] = 0
+                    else
+                        attributeStatus[attrId] = 126
+                    end
+                end
+            end
+            for attrId, value in pairs(attributes) do
+                if attrIdSet:has(attrId) then
+                    if currentAttributes[attrId] ~= value then
+                        currentAttributes[attrId] = value
+                        modified[#modified + 1] = attrId
+                    end
+                    attributeStatus[attrId] = 0
+                else
+                    attributeStatus[attrId] = 126
+                end
+            end
+            if #modified > 0 then
+                attributeChanges[#attributeChanges + 1] = {cluster, modified}
+                writeConfig(dimmer)
+            end
+            writeRsp[#writeRsp + 1] = {cluster, attributeStatus}
+        end
+        Libertas_VirtualDeviceWriteRsp(device, ref, writeRsp)
+        if #attributeChanges > 0 then
+            Libertas_VirtualDeviceAttributesChanged(device, attributeChanges)
+        end
     elseif action == 8 then
         local req = data
         local clusterId, commandId, commandData = unpack(req)
@@ -260,21 +326,28 @@ function ____exports.virtualDimmer(device)
         0
     }, {}, {}}
     Libertas_SetOnVirtualDevice(device, dimmerCallback, dimmer)
+    local config = Libertas_DataReadStandalone(CONFIG_DB_NAME)
+    if config ~= nil then
+        dimmer[2] = config[1]
+        dimmer[3] = config[2]
+    end
     local onOffAttrs = dimmer[2]
+    local levelAttrs = dimmer[3]
     onOffAttrs[0] = false
     onOffAttrs[16384] = false
     onOffAttrs[16385] = 0
     onOffAttrs[16386] = 0
-    onOffAttrs[16387] = 0
-    local levelAttrs = dimmer[3]
     levelAttrs[0] = 1
     levelAttrs[1] = 0
-    levelAttrs[17] = 254
-    levelAttrs[18] = 20
-    levelAttrs[19] = 20
-    levelAttrs[16] = 20
-    levelAttrs[15] = 1
-    levelAttrs[16384] = 1
+    if config == nil then
+        onOffAttrs[16387] = 0
+        levelAttrs[17] = 254
+        levelAttrs[18] = 20
+        levelAttrs[19] = 20
+        levelAttrs[16] = 20
+        levelAttrs[15] = 1
+        levelAttrs[16384] = 1
+    end
     Libertas_VirtualDeviceAttributesChanged(device, {{6, SUPPORTED_ONOFF_ATTRIBUTES}, {8, SUPPORTED_LEVEL_CONTROL_ATTRIBUTES}})
     Libertas_WaitReactive()
 end
