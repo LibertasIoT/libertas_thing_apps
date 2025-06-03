@@ -1,0 +1,18 @@
+{
+    "developer": "LibertasTutorial",
+    "docsVersion": "20250603.184150.763.25",
+    "documents": [
+        {
+            "locale": "en",
+            "version": "20230820.170425.456.4"
+        }
+    ],
+    "file": "Messaging",
+    "generated": [
+        "lua",
+        "53.lua"
+    ],
+    "lang": "ts",
+    "signatureVersion": "20230820.170425.456.5",
+    "version": "20250603.184137.513.22"
+}
