@@ -1,0 +1,18 @@
+{
+    "developer": "LibertasTutorial",
+    "docsVersion": "20250603.183814.201.14",
+    "documents": [
+        {
+            "locale": "en",
+            "version": "20250603.150408.849.8"
+        }
+    ],
+    "file": "DemoLightBlink",
+    "generated": [
+        "lua",
+        "53.lua"
+    ],
+    "lang": "ts",
+    "signatureVersion": "20250603.150102.447.5",
+    "version": "20250603.150244.203.7"
+}
