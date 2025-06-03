@@ -1,0 +1,18 @@
+{
+    "developer": "LibertasTutorial",
+    "docsVersion": "20250603.184216.941.29",
+    "documents": [
+        {
+            "locale": "en",
+            "version": "20250405.175329.900.0"
+        }
+    ],
+    "file": "VirtualDimmerLight",
+    "generated": [
+        "lua",
+        "53.lua"
+    ],
+    "lang": "ts",
+    "signatureVersion": "20250404.13508.96.0",
+    "version": "20250603.184209.376.26"
+}

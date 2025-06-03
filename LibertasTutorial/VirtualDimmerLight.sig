@@ -1,0 +1,1 @@
+{"Functions":[{"NativeName":"virtualDimmer", "Reserved":false, "Parameters":[{"ID":0, "NativeName":"device", "Type":"VirtualDevice", "BuiltinType":true, "Attributes":[{"Name":"VirtualDevice", "Value":"AQEBgQIBAgYBAQEABQCAgAGBgAGCgAGDgAEABgABAkBBQgAIAQECAAgAAQ8QERITgIABAAgAAQIDBAUGBwA="}]}]}], "Types":[]}
