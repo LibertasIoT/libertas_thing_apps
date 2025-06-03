@@ -1,0 +1,18 @@
+{
+    "developer": "LibertasTutorial",
+    "docsVersion": "20250603.184117.544.21",
+    "documents": [
+        {
+            "locale": "en",
+            "version": "20250603.172746.884.1"
+        }
+    ],
+    "file": "DemoLightShow",
+    "generated": [
+        "lua",
+        "53.lua"
+    ],
+    "lang": "ts",
+    "signatureVersion": "20250528.151935.792.6",
+    "version": "20250603.172735.783.0"
+}
