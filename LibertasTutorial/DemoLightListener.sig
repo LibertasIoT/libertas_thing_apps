@@ -1,0 +1,1 @@
+{"Functions":[{"NativeName":"DemoLightSubscribe", "Reserved":false, "Parameters":[{"ID":0, "NativeName":"device", "Type":"Device", "BuiltinType":true, "Attributes":[{"Name":"DeviceType", "Value":"AQECAf//AwEGAQH//wMCBgEIAQ=="}]}]}], "Types":[]}
