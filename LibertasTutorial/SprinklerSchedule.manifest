@@ -1,0 +1,18 @@
+{
+    "developer": "LibertasTutorial",
+    "docsVersion": "20250603.200023.500.49",
+    "documents": [
+        {
+            "locale": "en",
+            "version": "20220811.181154.580.7"
+        }
+    ],
+    "file": "SprinklerSchedule",
+    "generated": [
+        "lua",
+        "53.lua"
+    ],
+    "lang": "ts",
+    "signatureVersion": "20250528.153020.170.27",
+    "version": "20250603.200017.868.46"
+}
