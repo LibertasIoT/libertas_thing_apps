@@ -1,6 +1,6 @@
 // Copyright SmartonLabs Inc. 2019-2025
 
-enum SoilType {
+const enum SoilType {
     Loam,
     Clay,
     ClayLoam,
@@ -10,7 +10,7 @@ enum SoilType {
     Sand,
 }
 
-enum PlantType {
+const enum PlantType {
     Lawn,
     FruitTrees,
     Flowers,
@@ -20,7 +20,7 @@ enum PlantType {
     Xeriscape,
 }
 
-enum SprinklerHead {
+const enum SprinklerHead {
     SurfaceDrip,
     Bubblers,
     PopupSpray,
