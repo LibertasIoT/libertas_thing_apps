@@ -170,13 +170,6 @@ local ENUM_MS = {
     "ALL ZONE STEREO",
     "7.1IN"
 }
-local ReportAction = ReportAction or ({})
-ReportAction.NA = 0
-ReportAction[ReportAction.NA] = "NA"
-ReportAction.UPDATE = 1
-ReportAction[ReportAction.UPDATE] = "UPDATE"
-ReportAction.FORCE = 2
-ReportAction[ReportAction.FORCE] = "FORCE"
 local function getEnumIndex(value, e, start, def)
     start = start or 0
     do

@@ -197,7 +197,7 @@ declare class AVRMainZone extends AVRZone {
     eco?: LibertasVirtualDevice;
 }
 
-enum ReportAction {
+const enum ReportAction {
     NA,     // No report
     UPDATE, // Send report on a new state
     FORCE,  // Always send a report
