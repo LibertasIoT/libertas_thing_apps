@@ -1,0 +1,1 @@
+{"DisplayName":"MyFirstApp", "Description":"", "List":[{"Locale":"en", "Name":"DimmerBlinker", "DisplayName":"DimmerBlinker", "Description":"", "List":[{"Type":0, "Name":"dimmer", "Description":"", "Extras":[]},{"Type":1, "Name":"interval", "Description":"", "Extras":[]}], "Strings":{}}], "Types":[]}

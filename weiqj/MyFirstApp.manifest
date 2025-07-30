@@ -1,0 +1,18 @@
+{
+    "developer": "weiqj",
+    "docsVersion": "20250730.145242.129.15",
+    "documents": [
+        {
+            "locale": "en",
+            "version": "20250730.142632.907.1"
+        }
+    ],
+    "file": "MyFirstApp",
+    "generated": [
+        "lua",
+        "53.lua"
+    ],
+    "lang": "ts",
+    "signatureVersion": "20250730.142632.908.2",
+    "version": "20250730.145129.707.12"
+}
