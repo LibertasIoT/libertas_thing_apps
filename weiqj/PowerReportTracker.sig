@@ -1,0 +1,1 @@
+{"Functions":[{"NativeName":"TrackPowerReports", "Reserved":false, "Parameters":[{"ID":0, "NativeName":"device", "Type":"Device", "BuiltinType":true, "Attributes":[{"Name":"DeviceType", "Value":"AQECAf//AwGRAQEB//8DAZABAQ=="}]}]}], "Types":[]}

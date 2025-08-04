@@ -1,0 +1,18 @@
+{
+    "developer": "weiqj",
+    "docsVersion": "20250804.172503.742.43",
+    "documents": [
+        {
+            "locale": "en",
+            "version": "20250804.162905.188.1"
+        }
+    ],
+    "file": "PowerReportTracker",
+    "generated": [
+        "lua",
+        "53.lua"
+    ],
+    "lang": "ts",
+    "signatureVersion": "20250804.164211.528.10",
+    "version": "20250804.172359.874.40"
+}
