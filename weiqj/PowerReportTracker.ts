@@ -1,7 +1,7 @@
-function printEneryImported(attributes: LibertasAttributes, name: string, attrId: number) : string {
-    const energyImport = attributes[attrId]
-    if (energyImport !== undefined) {
-        const energy = (energyImport as LibertasStruct)[
+function printEneryMeasurement(attributes: LibertasAttributes, name: string, attrId: number) : string {
+    const measurementStruct = attributes[attrId]
+    if (measurementStruct !== undefined) {
+        const energy = (measurementStruct as LibertasStruct)[
             Matter.Fields.ElectricalEnergyMeasurement.EnergyMeasurementStruct.Energy
         ]
         if (energy !== undefined) {
@@ -14,27 +14,25 @@ function printEneryImported(attributes: LibertasAttributes, name: string, attrId
 function TrackPowerReports(device: LibertasDevice) {
     Libertas_SetOnDevice(device, (device, action, data, tag, ref) => {
         if (action === LibertasDeviceAction.ReportData) {
-            const reportData = data as LibertasClusterReport[];
             let text = "Report received: "
-            for (const clusterReport of reportData) {
-                const cluster = clusterReport[0]
-                const attributes = clusterReport[1]
+            for (const clusterReport of data as LibertasClusterReport[]) {
+                const [cluster, attributes] = clusterReport
                 if (cluster === Matter.Clusters.ElectricalPowerMeasurement) {
                     const activePower = attributes[Matter.Attributes.ElectricalPowerMeasurement.ActivePower]
                     if (activePower !== undefined) {
                         text += "ActivePower=" + +(activePower as number) + "mW; "
                     }
                 } else if (cluster === Matter.Clusters.ElectricalEnergyMeasurement) {
-                    text += printEneryImported(attributes,
+                    text += printEneryMeasurement(attributes,
                         "CumulativeEnergyImported=",
                         Matter.Attributes.ElectricalEnergyMeasurement.CumulativeEnergyImported)
-                    text += printEneryImported(attributes,
+                    text += printEneryMeasurement(attributes,
                         "PeriodicEnergyImported=",
                         Matter.Attributes.ElectricalEnergyMeasurement.PeriodicEnergyImported)
-                    text += printEneryImported(attributes,
+                    text += printEneryMeasurement(attributes,
                         "CumulativeEnergyExported=",
                         Matter.Attributes.ElectricalEnergyMeasurement.CumulativeEnergyExported)
-                    text += printEneryImported(attributes,
+                    text += printEneryMeasurement(attributes,
                         "PeriodicEnergyExported=",
                         Matter.Attributes.ElectricalEnergyMeasurement.PeriodicEnergyExported)
                 }

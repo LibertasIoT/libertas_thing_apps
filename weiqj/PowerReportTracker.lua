@@ -1,9 +1,9 @@
 --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 local ____exports = {}
-local function printEneryImported(attributes, name, attrId)
-    local energyImport = attributes[attrId]
-    if energyImport ~= nil then
-        local energy = energyImport[0]
+local function printEneryMeasurement(attributes, name, attrId)
+    local measurementStruct = attributes[attrId]
+    if measurementStruct ~= nil then
+        local energy = measurementStruct[0]
         if energy ~= nil then
             return (name .. tostring(energy)) .. "mWh; "
         end
@@ -15,21 +15,19 @@ local function TrackPowerReports(device)
         device,
         function(device, action, data, tag, ref)
             if action == 5 then
-                local reportData = data
                 local text = "Report received: "
-                for ____, clusterReport in ipairs(reportData) do
-                    local cluster = clusterReport[1]
-                    local attributes = clusterReport[2]
+                for ____, clusterReport in ipairs(data) do
+                    local cluster, attributes = unpack(clusterReport)
                     if cluster == 144 then
                         local activePower = attributes[8]
                         if activePower ~= nil then
                             text = text .. ("ActivePower=" .. tostring(activePower)) .. "mW; "
                         end
                     elseif cluster == 145 then
-                        text = text .. printEneryImported(attributes, "CumulativeEnergyImported=", 1)
-                        text = text .. printEneryImported(attributes, "PeriodicEnergyImported=", 3)
-                        text = text .. printEneryImported(attributes, "CumulativeEnergyExported=", 2)
-                        text = text .. printEneryImported(attributes, "PeriodicEnergyExported=", 4)
+                        text = text .. printEneryMeasurement(attributes, "CumulativeEnergyImported=", 1)
+                        text = text .. printEneryMeasurement(attributes, "PeriodicEnergyImported=", 3)
+                        text = text .. printEneryMeasurement(attributes, "CumulativeEnergyExported=", 2)
+                        text = text .. printEneryMeasurement(attributes, "PeriodicEnergyExported=", 4)
                     end
                     Libertas_Log(1, text)
                 end
