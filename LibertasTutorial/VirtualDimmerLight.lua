@@ -35,7 +35,7 @@ local function writeConfig(dimmer)
     local config = {dimmer[2], dimmer[3]}
     Libertas_DataWriteStandalone(CONFIG_DB_NAME, config)
 end
-local function generateClusterAttributeRsp(clusterRsp, attrIdList, attrs, attrSet)
+local function generateClusterAttributeRsp(clusterRsp, attrIdList, attrs, attrSet, name)
     for ____, attrId in ipairs(attrIdList) do
         local v = attrs[attrId]
         if v ~= nil then
@@ -47,7 +47,7 @@ local function generateClusterAttributeRsp(clusterRsp, attrIdList, attrs, attrSe
     end
 end
 local function dimmerCalculateCurrentLevel(state)
-    local _, startLevel, targetLevel, startTime, transitionTime = unpack(state)
+    local _, startLevel, targetLevel, startTime, transitionTime = unpack(state, 1, 5)
     local transitionTime_ms = transitionTime * 100
     local elapsed_ms = os.msticks() - startTime
     if elapsed_ms > transitionTime_ms then
@@ -58,8 +58,8 @@ local function dimmerCalculateCurrentLevel(state)
 end
 local function dimmerLevelTransition(device, dimmer, onOffAttributeChanged)
     local levelAttributeChanged = {}
-    local state, onOffAttrs, levelAttrs = unpack(dimmer)
-    local command, startLevel, targetLevel, startTime, transitionTime, timer = unpack(state)
+    local state, onOffAttrs, levelAttrs = unpack(dimmer, 1, 3)
+    local command, startLevel, targetLevel, startTime, transitionTime, timer = unpack(state, 1, 6)
     local transitionTime_ms = transitionTime * 100
     local elapsed_ms = os.msticks() - startTime
     if elapsed_ms > transitionTime_ms then
@@ -121,17 +121,29 @@ local function dimmerLevelTransition(device, dimmer, onOffAttributeChanged)
 end
 local function dimmerCallback(device, ref, action, data, tag)
     local dimmer = tag
-    local state, onOffAttrs, levelAttrs = unpack(dimmer)
+    local state, onOffAttrs, levelAttrs = unpack(dimmer, 1, 3)
     if action == 2 or action == 3 then
         local req = data
         local reports = {}
         for ____, clusterReq in ipairs(req) do
-            local clusterId = clusterReq[1]
+            local clusterId, clusterAttrs = unpack(clusterReq, 1, 2)
             local clusterRsp = {clusterId, {}, {}}
             if clusterId == 6 then
-                generateClusterAttributeRsp(clusterRsp, clusterReq[2], onOffAttrs, SUPPORTED_ONOFF_ATTRIBUTE_SET)
+                generateClusterAttributeRsp(
+                    clusterRsp,
+                    clusterAttrs,
+                    onOffAttrs,
+                    SUPPORTED_ONOFF_ATTRIBUTE_SET,
+                    "OnOff"
+                )
             elseif clusterId == 8 then
-                generateClusterAttributeRsp(clusterRsp, clusterReq[2], levelAttrs, SUPPORTED_LEVEL_CONTROL_ATTRIBUTE_SET)
+                generateClusterAttributeRsp(
+                    clusterRsp,
+                    clusterAttrs,
+                    levelAttrs,
+                    SUPPORTED_LEVEL_CONTROL_ATTRIBUTE_SET,
+                    "Level"
+                )
             else
                 for ____, attrId in ipairs(clusterReq[2]) do
                     clusterRsp[3][attrId] = 195
@@ -147,7 +159,7 @@ local function dimmerCallback(device, ref, action, data, tag)
         for ____, clusterReq in ipairs(req) do
             local modified = {}
             local attributeStatus = {}
-            local cluster, attributes, nullAttributes = unpack(clusterReq)
+            local cluster, attributes, nullAttributes = unpack(clusterReq, 1, 3)
             local currentAttributes
             local attrIdSet
             if cluster == 6 then
@@ -193,7 +205,7 @@ local function dimmerCallback(device, ref, action, data, tag)
         end
     elseif action == 8 then
         local req = data
-        local clusterId, commandId, commandData = unpack(req)
+        local clusterId, commandId, commandData = unpack(req, 1, 3)
         if clusterId == 6 then
             local target = nil
             if commandId == 1 then

@@ -56,7 +56,8 @@ function generateClusterAttributeRsp(
         clusterRsp : LibertasClusterReport,
         attrIdList : number[],
         attrs : LibertasAttributes,
-        attrSet: Set<number>) {
+        attrSet: Set<number>,
+        name : string) {
     for (const attrId of attrIdList) {
         const v = attrs[attrId]
         if (v !== undefined) {
@@ -156,13 +157,13 @@ function dimmerCallback(device: LibertasVirtualDevice, ref: number, action: Libe
         const req = data as LibertasClusterReadReq[]
         const reports : LibertasClusterReport[] = [];
         for (const clusterReq of req) {
-            const clusterId = clusterReq[0]
+            const [clusterId, clusterAttrs] = clusterReq
             const clusterRsp : LibertasClusterReport = 
                 [clusterId, <LibertasAttributes>{}, <LibertasIdStatus>{}];
             if (clusterId === Matter.Clusters.OnOff) {
-                generateClusterAttributeRsp(clusterRsp, clusterReq[1], onOffAttrs, SUPPORTED_ONOFF_ATTRIBUTE_SET)
+                generateClusterAttributeRsp(clusterRsp, clusterAttrs, onOffAttrs, SUPPORTED_ONOFF_ATTRIBUTE_SET, "OnOff")
             } else if (clusterId === Matter.Clusters.LevelControl) {
-                generateClusterAttributeRsp(clusterRsp, clusterReq[1], levelAttrs, SUPPORTED_LEVEL_CONTROL_ATTRIBUTE_SET)
+                generateClusterAttributeRsp(clusterRsp, clusterAttrs, levelAttrs, SUPPORTED_LEVEL_CONTROL_ATTRIBUTE_SET, "Level")
             } else {
                 for (const attrId of clusterReq[1]) {
                     clusterRsp[2][attrId] = Matter.Status.UnsupportedCluster

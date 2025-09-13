@@ -1,6 +1,6 @@
 {
     "developer": "LibertasTutorial",
-    "docsVersion": "20250603.184216.941.29",
+    "docsVersion": "20250913.215128.835.27",
     "documents": [
         {
             "locale": "en",
@@ -14,5 +14,5 @@
     ],
     "lang": "ts",
     "signatureVersion": "20250404.13508.96.0",
-    "version": "20250603.184209.376.26"
+    "version": "20250913.215044.136.24"
 }
