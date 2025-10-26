@@ -1,0 +1,18 @@
+{
+    "developer": "LibertasTutorial",
+    "docsVersion": "20251026.164648.822.15",
+    "documents": [
+        {
+            "locale": "en",
+            "version": "20250929.171204.225.1"
+        }
+    ],
+    "file": "VirtualIrrigationControl",
+    "generated": [
+        "lua",
+        "53.lua"
+    ],
+    "lang": "ts",
+    "signatureVersion": "20251026.144016.979.2",
+    "version": "20251026.164615.875.12"
+}
