@@ -1,6 +1,6 @@
 --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 local ____exports = {}
-local DefaultTimeoutMilli = 10 * 1000
+local DefaultTimeoutMilli = 10 * 60 * 1000
 local function TurnOffValve(state)
     if state[3] then
         state[3] = false

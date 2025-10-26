@@ -1,5 +1,5 @@
 declare type ValveState = [allValves: ValveState[], valve: LibertasDevice, onOff: boolean, timer?: LibertasTimer, expire?:number]
-const DefaultTimeoutMilli = 10 * 1000
+const DefaultTimeoutMilli = 10 * 60 * 1000
 
 function TurnOffValve(state: ValveState) {
     if (state[2]) {
